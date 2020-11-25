@@ -110,7 +110,7 @@ fig <- fig %>% add_pie(data = df_case, labels = ~Race_Ethnicity, values = ~Count
           domain = list(x = c(0, 0.4), y = c(0.2, 1)))
 fig <- fig %>% add_pie(data = df_death, labels = ~Race_Ethnicity, values = ~Count,
           name = "Deaths", domain = list(x = c(0.6, 1), y = c(0.2, 1)))
-fig <- fig %>% layout(title =  paste("Infection status of different Race_Ethnicity","Left: case numbers", "Right: death numbers", sep="\n"), showlegend = T, legend=list(x=100,y=0.5),
+fig <- fig %>% layout(title =  paste("Infection status of different Race_Ethnicity","Left: cases", "Right: deaths", sep=" "), showlegend = T,
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE))
 
@@ -221,10 +221,10 @@ p2 <- ggplot(
   geom_text_wordcloud_area() +
   scale_size_area(max_size = 20) +
   theme_minimal()+theme(plot.title = element_text(hjust = 0.5))+ggtitle("token-level word cloud")
-ggarrange(p2, p1, labels = c("A", "B"),
+p <- ggarrange(p2, p1, labels = c("A", "B"),
           ncol = 1, nrow = 2)
 
-
+p
 ```
 
 **Insights:**
