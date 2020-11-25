@@ -1,6 +1,5 @@
 ---
 title: "COVID-19 condition study in the United States"
-author: liyongsh@usc.edu
 output: 
     html_document:
         toc: TRUE
@@ -22,6 +21,8 @@ library(knitr)
 library(sjPlot)
 library(ggthemes)
 library(scales)
+library(ggwordcloud)
+library(ggpubr)
 options(scipen = 200)
 opts_chunk$set(
   warning = FALSE,
@@ -39,49 +40,12 @@ opts_chunk$set(
 
 ## Introduction 
 
-COVID-19 is a global pandemic that affects our health and life. By exploring the COVID-19 condition, we can make take possible actions to better contain its spread and make plans for the future.   In this project, we mainly study the COVID-19 condition in the United States. 
+COVID-19 is a global pandemic that affects our health and life. By exploring the COVID-19 condition, we can make take possible actions to better contain its spread and make plans for the future. In this project, we mainly study the COVID-19 condition in the United States. The data for this study coms from https://covidtracking.com/data/api and  https://covid.cdc.gov/covid-data-tracker/#demographics
 
 How is the COVID-19 condition in the United States now? The question can be answered from the following perspectives:
 
-- Q1: Condition Overview: latest numbers about the tests, confirmed cases, deaths and recoveries. 
-- Q2: Pandemic Tendency: the tendency of COVID-19 infection in terms of new tests, new positives and new deaths.
-- Q3: Community Infection Status: the infection status of different race/ethnicity and age groups.
-- Q4: Population Infection Rate: the population infection rate in different states, which can be a indicator of virus spreading level.
-- Q5: Key Information: the key latest information or notes we should pay attention to.
 
-
-
-
-## Methods
-
-The COVID Tracking Project is a volunteer organization to publish the data required to understand the COVID-19 outbreak in the United States. The website provides APIs for accessing the data: https://covidtracking.com/data/api.
-
-The data used for this project is as follows:
-
-- https://api.covidtracking.com/v1/us/daily.csv: Historical Data of COVID-19 in the United states.
-- https://api.covidtracking.com/v1/states/info.csv: Basic information about states, including notes about our methodology and the websites we use to check for data.
-- https://api.covidtracking.com/v1/states/daily.csv: all COVID data available for every state since tracking started.
-- the COVID-19 case data with respect to different Race/Ethnicity and AgeGgroup is from https://covid.cdc.gov/covid-data-tracker/#demographics, and last updated at Nov 17 2020 12:18PM. The data is also saved into the `data` directory in the github repo.
-
-
-This project uses the following packages to achieve the analysis:
-
-- data.table: read in web link data and converting to data.tables.
-- tidytext: extract ngrams from a text sequence.
-- ggplot2: produce the graphs.
-- knitr: knitr the document and produce nice-look markdown tables
-- tidyverse: data cleaning, filtering and so on.
-- head(), str() and so on are used for basic data explorations. 
-
-The data link can be directly read into a data.table using `data.table::fread`
-
-
-
-
-
-## Preliminary Results
-
-### Q1: Condition Overview
+## Q1: Condition Overview
 
 Here is the summary of the latest numbers about the total tests, accumulated confirmed case numbers, accumulated deaths, accumulated recoveries. 
 
@@ -94,9 +58,10 @@ colnames(overview) = c("date","total tests", "accumulated confirmed case numbers
 kable(overview)
 ```
 
-### Q2: Pandemic Tendency
 
-The tendency of COVID-19 can reflect how will this pandemic will proceed into the future. Is it getting better or worse? We can illustrate the pandemic tendency using three important variables: New COVID-19 Tests, New Positive Cases, New Death Cases. The result is shown in the following graph.
+## Q2: Pandemic Tendency
+
+The tendency of COVID-19 can reflect how will this pandemic will proceed into the future.We can illustrate the pandemic tendency using three important variables: New COVID-19 Tests, New Positive Cases, New Death Cases. 
 
 ```{r, echo=FALSE,  fig.width = 9, fig.align = 'center',  out.width = "900px"}
 #df = fread("https://api.covidtracking.com/v1/us/daily.csv")
@@ -117,18 +82,18 @@ p <- df_melted %>%
 ggplotly(p)
 ```
 
-We can see that we are doing more and more COVID-19 testing. And the line graph of new positive cases depicts the tendency of the COVID-19 pandemic. It shows there are more and more people getting infected with COVID-19. The curve indicates that the virus spreading is speeding up as the time goes. Therefore, we have not reached the turning point in which the actual condition gets better.
+**Insight**:
 
-From the curve of the New death cases, we can see the new death cases is becoming flat and not increasing like new confirmed cases, plausibly indicating that COVID-19 virus is less harmful than before or we are more experienced to cure the disease. However, this may subject to many factors' influences.
+- We are doing more and more COVID-19 testing!
+- More and more people getting infected with COVID-19. The curve indicates that the virus spreading is speeding up as the time goes.
+- We have not reached the turning point in which the actual condition gets better. 
+- The new death cases is becoming flat and not increasing like new confirmed cases.
 
+## Q3: Community Infection Status
 
-### Q3: Community Infection Status
+Different age groups may have different susceptibility towards the virus due to their different immune levels. And the virus infection may also differs with respect to races and ethnicities. 
 
-Different age groups may have different susceptibility towards the virus due to their different immune levels. In addition, the virus infection may also differs with respect to races and ethnicities. We gathered the data from https://covid.cdc.gov to discover the infection status of different age groups or races and ethnicities.
-
-
-
-```{r,echo=FALSE}
+```{r, echp=FALSE}
 df_case  = fread("./data/cases_by_race_ethnicity__all_age_groups.csv")
 df_death = fread("./data/deaths_by_race_ethnicity__all_age_groups.csv")
 df_case$label = paste(df_case$Count, "(", df_case$Percentage, "%)", sep="")
@@ -136,18 +101,25 @@ df_death$label = paste(df_death$Count, "(", df_death$Percentage, "%)", sep="")
 df_case$type  = "cases"
 df_death$type = "deaths"
 df = rbind(df_case,df_death)
-colnames(df)[1] = "Race_Ethnicity"
+colnames(df_case)[1] = "Race_Ethnicity"
+colnames(df_death)[1] = "Race_Ethnicity"
 df$Percentage = as.numeric(df$Percentage)
-p<-ggplot(df,aes(x=reorder(Race_Ethnicity,Percentage), y=Percentage))+geom_bar(stat="identity",fill="Sky Blue")+
-facet_wrap(.~type, scales="free_x")+
-  geom_text(aes(label = Percentage), position=position_dodge(width=0.9), vjust=0.5,hjust=ifelse(df$Percentage>20, 1, 0))+
-   theme(panel.background = element_blank(), axis.line = element_line(colour =    
-   "black"))+coord_flip()+scale_y_discrete(breaks=seq(0,60))+
-  labs(x='Race_Ethnicity',y="percentage")+ggtitle("Infection status of different Race_Ethnicity")
-p
+fig <- plot_ly()
+fig <- fig %>% add_pie(data = df_case, labels = ~Race_Ethnicity, values = ~Count,
+          name = "Cases", 
+          domain = list(x = c(0, 0.4), y = c(0.2, 1)))
+fig <- fig %>% add_pie(data = df_death, labels = ~Race_Ethnicity, values = ~Count,
+          name = "Deaths", domain = list(x = c(0.6, 1), y = c(0.2, 1)))
+fig <- fig %>% layout(title =  paste("Infection status of different Race_Ethnicity","Left: case numbers", "Right: death numbers", sep="\n"), showlegend = T, legend=list(x=100,y=0.5),
+         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
+         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE))
+
+fig
 ```
 
-From the graph, we can find that the differences among races and ethnicities are large. White Non-Hispanic has both the highest infection rate and covid-death rate, whereas Asian Non-Hispanic, American Indian, Native Hawaiian has significantly low infection rate and death rate. 
+
+**Insight**: 
+- White Non-Hispanic has both the highest infection rate and covid-death rate, whereas Asian Non-Hispanic, American Indian, Native Hawaiian has significantly low infection rate and death rate. 
 
 
 ```{r,echo=FALSE}
@@ -170,11 +142,14 @@ p <- ggplot(df,aes(x=age, y=percent))+geom_bar(stat="identity",fill="Orange")+
 ggplotly(p)
 ```
 
-This graph of infection of different age groups tells us the younger people have a higher infection rate than other populations. Nevertheless, the older people tends to be impacted seriously by the virus, thus leading to the higher death rate among the population. We add a smooth line to the differences using `loess` method.
+**Insight:**
+
+- The younger people have a higher infection rate than other populations. 
+- The older people tends to be impacted seriously by the virus, thus leading to the higher death rate among the population.
 
 
-### Q4: Population Infection Rate
-
+## Q4: Population Infection Rate
+The population infection rate in different states can serve as an indicator of virus spreading level.
 
 ```{r, echo=FALSE}
 #df2 = data.table::fread("https://api.covidtracking.com/v1/states/current.csv")
@@ -200,37 +175,64 @@ p3 <- plot_geo(df3) %>%
         )
 p3
 ```
-From the map, we can see that different states have different population infection rate now. Some states such as are serious than others. Another thing to pay attention to is that the population infection rate has reached a significant level of .
+
+**Insight:**
+- Different states have different population infection rate now. Some states such as are serious than others. 
+- The population infection rate has reached a significant level relative to the population indensity.
 
 
 
-### Q5: Key Information
+## Q5: Key Information
 
-The COVID Tracking Project also gathers notes from every state. These notes are informative for us to know about what is happing with the COVID-19 status with the state. In other words, we can catch the latest and most important information reading these notes. Simple text-mining like n-grams can give us a rough topic about the pandemic condition. Here, we choose tri-grams.
-
+The text-mining of the notes gathered from every state are helpful for us to know the main topics. Here, we choose to display them using word tokens and tri-grams.
 
 ```{r,echo=FALSE}
 #df = fread("https://api.covidtracking.com/v1/states/info.csv")
 df = fread("data/states_info.csv")
 library(tidytext)
-df %>%
+df1 <- df %>%
    unnest_ngrams(ngram, notes,n=3) %>%
    count(ngram,sort=TRUE) %>%
-   top_n(10, n) %>%
-   ggplot(aes(ngram, n)) +geom_col()+ coord_flip()+
-  labs(x='tri-gram',y='mentioned times',title='Top tri-grams mentioned in state notes')+
-  theme(axis.text.x = element_text(angle = 90))+
-  theme(plot.title = element_text(hjust = 0.5))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  theme(panel.background = element_blank(), axis.line = element_line(colour = "black"))
+   top_n(20, n)
+
+df2 <-df %>%
+  unnest_tokens(word, notes) %>%
+  anti_join(stop_words, by = c("word")) %>%
+  count(word, sort = TRUE) %>%
+  top_n(25, n)
+set.seed(10)
+p1 <- ggplot(
+  df1,
+  aes(
+    label = ngram, size = n,
+    color = factor(sample.int(10, nrow(df1), replace = TRUE)),
+  )
+) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 10) +
+  theme_minimal()+theme(plot.title = element_text(hjust = 0.5))+ggtitle("tri-gram word cloud")
+p2 <- ggplot(
+  df2,
+  aes(
+    label = word, size = n,
+    color = factor(sample.int(10, nrow(df2), replace = TRUE)),
+  )
+) +
+  geom_text_wordcloud_area() +
+  scale_size_area(max_size = 20) +
+  theme_minimal()+theme(plot.title = element_text(hjust = 0.5))+ggtitle("token-level word cloud")
+ggarrange(p2, p1, labels = c("A", "B"),
+          ncol = 1, nrow = 2)
+
+
 ```
 
-From the statistics of tri-grams, we can infer that "PCR test" is the most important information across all states. It means that most states is mainly focusing on COVID-19 testing now.
+**Insights:**
+- "PCR test" is the most important information across all states. It means that most states is mainly focusing on COVID-19 testing now.
 
 
 ## Summary
 
-Based on the preliminary results we analyzed above, we can reach the following conclusions.
 
 How is the COVID-19 condition in the United States now?
 

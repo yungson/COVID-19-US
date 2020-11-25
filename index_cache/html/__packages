@@ -16,3 +16,5 @@ sjPlot
 ggthemes
 scales
 tidytext
+ggwordcloud
+ggpubr
