@@ -1,0 +1,11 @@
+name: "Heath Data Science in R"
+output_dir: "."
+navbar:
+  title: "COVID-19 Study of the United States"
+  left:
+    - text: "Home"
+      href: index.html
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
