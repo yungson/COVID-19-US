@@ -5,6 +5,8 @@ navbar:
   left:
     - text: "Home"
       href: index.html
+    - text: "Download Report"
+      href: report.pdf
 output:
   prettydoc::html_pretty:
     theme: cayman
