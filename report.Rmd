@@ -38,11 +38,6 @@ opts_chunk$set(
 ```
 
 
-#```{r, echo=FALSE}
-#Sys.setenv("plotly_username"="lysethan")
-#Sys.setenv("plotly_api_key"="2xTbFH705WoS1d0k6UEg")
-#```
-
 ## Introduction 
 
 COVID-19 is a global pandemic that affects our health and life. By exploring the COVID-19 condition, we can make take possible actions to better contain its spread and make plans for the future.   In this project, we mainly study the COVID-19 condition in the United States. 
@@ -314,7 +309,7 @@ knitr::include_graphics("wordcloud.png")
 From the statistics of tri-grams, we can infer that "PCR test" is the most important information across all states. It means that most states is mainly focusing on COVID-19 testing now.
 
 
-### Conclusion and Summary
+## Conclusion and Summary
 
 
 How is the COVID-19 condition in the United States now?
